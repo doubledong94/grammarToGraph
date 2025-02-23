@@ -114,7 +114,7 @@ class TranslateToDotVisitor(ANTLRv4ParserVisitor):
             if ctx.terminalDef().TOKEN_REF():
                 return ctx.terminalDef().TOKEN_REF().getText()
             else:
-                return ctx.terminalDef().STRING_LITERAL().getText().replace("'", '').replace('"', '')
+                return ctx.terminalDef().STRING_LITERAL().getText().replace("'", '"')
         elif ctx.ruleref():
             return ctx.ruleref().RULE_REF().getText()
         return ''
@@ -180,4 +180,4 @@ def main(file_path, start_rule, depth):
 
 
 if __name__ == '__main__':
-    main("../grammars/GradleScript.g4", 'script', 6)
+    main("../grammars/C.g4", 'compilationUnit', 5)

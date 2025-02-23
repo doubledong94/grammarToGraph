@@ -1,3 +1,3 @@
 # grammarToGraph
 
-![GroovyParser_block.png](graphs/GroovyParser_block.png)
+![C_compilationUnit.png](graphs/C_compilationUnit.png)
