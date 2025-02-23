@@ -18,7 +18,7 @@ class TranslateToDotVisitor(ANTLRv4ParserVisitor):
     rule_start_edge = defaultdict(list)
     terminal_node = []
     terminal_node_under_tree = []
-    done_head = []
+    done_rule_under_head = defaultdict(list)
 
     def visitGrammarSpec(self, ctx: ANTLRv4Parser.GrammarSpecContext):
         self.grammar_name = ctx.grammarDecl().identifier().getText()
@@ -120,18 +120,17 @@ class TranslateToDotVisitor(ANTLRv4ParserVisitor):
         return ''
 
     def get_edge_of_tree(self, rule_head, tree_head, edges, max_depth, depth):
-        if tree_head in self.done_head:
+        if rule_head in self.done_rule_under_head and tree_head in self.done_rule_under_head[rule_head]:
             return
-        self.done_head.append(tree_head)
+        self.done_rule_under_head[rule_head].append(tree_head)
         if tree_head in self.terminal_node:
             self.terminal_node_under_tree.append(tree_head)
         if tree_head in self.grammar_map:
             for rule_head_i, vi in self.grammar_map[tree_head]:
                 if rule_head == rule_head_i:
                     edges.append([tree_head, vi])
-                    self.get_edge_of_tree(rule_head, vi, edges, max_depth, depth + 1)
+                    self.get_edge_of_tree(rule_head, vi, edges, max_depth, depth)
                     if depth <= max_depth:
-                        self.done_head.remove(vi)
                         self.get_edge_of_tree(vi, vi, edges, max_depth, depth + 1)
 
     def to_dot_str(self, start_rule, depth):
@@ -175,10 +174,10 @@ def main(file_path, start_rule, depth):
     os.system(f'dot ../dot/{visitor.grammar_name}_{start_rule}.dot -T png -o ../graphs/{visitor.grammar_name}_{start_rule}.png')
     # os.system(f'neato ../dot/{visitor.grammar_name}_{start_rule}.dot -T png -o ../graphs/{visitor.grammar_name}_{start_rule}.png')
     # os.system(f'fdp ../dot/{visitor.grammar_name}_{start_rule}.dot -T png -o ../graphs/{visitor.grammar_name}_{start_rule}.png')
-    # os.system(f'sfdp ../dot/{visitor.grammar_name}.dot -T png -o ../graphs/{visitor.grammar_name}.png')
-    # os.system(f'twopi ../dot/{visitor.grammar_name}.dot -T png -o ../graphs/{visitor.grammar_name}.png')
-    # os.system(f'circo ../dot/{visitor.grammar_name}.dot -T png -o ../graphs/{visitor.grammar_name}.png')
+    # os.system(f'sfdp ../dot/{visitor.grammar_name}_{start_rule}.dot -T png -o ../graphs/{visitor.grammar_name}_{start_rule}.png')
+    # os.system(f'twopi ../dot/{visitor.grammar_name}_{start_rule}.dot -T png -o ../graphs/{visitor.grammar_name}_{start_rule}.png')
+    # os.system(f'circo ../dot/{visitor.grammar_name}_{start_rule}.dot -T png -o ../graphs/{visitor.grammar_name}_{start_rule}.png')
 
 
 if __name__ == '__main__':
-    main("../grammars/GroovyParser.g4", 'block', 6)
+    main("../grammars/GradleScript.g4", 'script', 6)
