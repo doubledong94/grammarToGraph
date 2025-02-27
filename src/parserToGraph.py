@@ -140,11 +140,11 @@ class TranslateToDotVisitor(ANTLRv4ParserVisitor):
                 if rule_head == rule_head_i:
                     edges.append([tree_head, vi])
                     self.get_edge_of_tree(rule_head, vi, edges, max_depth, depth)
+                    if self.instance_to_rule_head[vi] in self.grammar_map:
+                        edges.append([vi, self.instance_to_rule_head[vi]])
+                    else:
+                        self.terminal_node_under_tree.append(vi)
                     if depth <= max_depth:
-                        if self.instance_to_rule_head[vi] in self.grammar_map:
-                            edges.append([vi, self.instance_to_rule_head[vi]])
-                        else:
-                            self.terminal_node_under_tree.append(vi)
                         self.get_edge_of_tree(self.instance_to_rule_head[vi], self.instance_to_rule_head[vi], edges, max_depth, depth + 1)
 
     def to_dot_str(self, start_rule, depth):
