@@ -21,13 +21,10 @@ class TranslateToDotVisitor(ANTLRv4ParserVisitor):
     instance_list = defaultdict(list)
     instance_to_rule_head = {}
 
-    def new_rule_head_instance(self, rule_head, use_quote=False):
-        if use_quote:
-            rule_head_instance = '"' + rule_head + str(len(self.instance_list[rule_head])) + '"'
-        else:
-            rule_head_instance = rule_head + str(len(self.instance_list[rule_head]))
+    def new_rule_head_instance(self, rule_head):
+        rule_head_instance = rule_head + str(len(self.instance_list[rule_head]))
         self.instance_list[rule_head].append(rule_head_instance)
-        self.instance_to_rule_head[rule_head_instance] = f'"{rule_head}"' if use_quote else rule_head
+        self.instance_to_rule_head[rule_head_instance] = rule_head
         return rule_head_instance
 
     def visitGrammarSpec(self, ctx: ANTLRv4Parser.GrammarSpecContext):
@@ -124,11 +121,11 @@ class TranslateToDotVisitor(ANTLRv4ParserVisitor):
             if ctx.terminalDef().TOKEN_REF():
                 return self.new_rule_head_instance(ctx.terminalDef().TOKEN_REF().getText())
             else:
-                return self.new_rule_head_instance(ctx.terminalDef().STRING_LITERAL().getText(), True)
+                return self.new_rule_head_instance(ctx.terminalDef().STRING_LITERAL().getText())
         elif ctx.ruleref():
             return self.new_rule_head_instance(ctx.ruleref().RULE_REF().getText())
         elif ctx.notSet():
-            return self.new_rule_head_instance(ctx.getText(), True)
+            return self.new_rule_head_instance(ctx.getText())
         return ''
 
     def get_edge_of_tree(self, rule_head, tree_head, edges, max_depth, depth):
@@ -148,9 +145,9 @@ class TranslateToDotVisitor(ANTLRv4ParserVisitor):
                         self.get_edge_of_tree(self.instance_to_rule_head[vi], self.instance_to_rule_head[vi], edges, max_depth, depth + 1)
 
     def to_dot_str(self, start_rule, depth):
-        dot_str = '''digraph G {
+        dot_str = '''strict digraph G {
             graph [size="10,10"];      
-            graph [dpi=800]; // 设置分辨率为300 DPI
+            graph [dpi=800];
             rankdir=LR; // 从左到右排列
             node [style=filled];
             node [shape=box]; // 节点形状为方框
@@ -159,15 +156,15 @@ class TranslateToDotVisitor(ANTLRv4ParserVisitor):
         self.get_edge_of_tree(start_rule, start_rule, edges, depth, 1)
         for edge in edges:
             if edge[0] in self.rule_start_edge and edge[1] in self.rule_start_edge[edge[0]]:
-                dot_str += f'{edge[0]} -> {edge[1]} [style=dashed];\n'
+                dot_str += f'"{edge[0]}" -> "{edge[1]}" [penwidth=3.0,color=green];\n'
             elif edge[0] in self.instance_to_rule_head and edge[1] == self.instance_to_rule_head[edge[0]]:
-                dot_str += f'{edge[0]} -> {edge[1]} [penwidth=3.0,color=red];\n'
+                dot_str += f'"{edge[0]}" -> "{edge[1]}" [penwidth=3.0,color=red];\n'
             else:
-                dot_str += f'{edge[0]} -> {edge[1]} [penwidth=3.0];\n'
+                dot_str += f'"{edge[0]}" -> "{edge[1]}" [penwidth=3.0];\n'
         # special color for special node
         for n in self.terminal_node_under_tree:
-            dot_str += f'{n} [fillcolor="{terminal_node_color}"];\n'
-        dot_str += f'{start_rule} [fillcolor="{starting_node_color}"];\n'
+            dot_str += f'"{n}" [fillcolor="{terminal_node_color}"];\n'
+        dot_str += f'"{start_rule}" [fillcolor="{starting_node_color}"];\n'
         # edges
         dot_str += '}'
         return dot_str
@@ -196,4 +193,4 @@ def main(file_path, start_rule, depth):
 
 
 if __name__ == '__main__':
-    main("../grammars/C.g4", 'compilationUnit', 6)
+    main("../grammars/DOT.g4", 'graph', 8)
